@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "es2017",
+    "sourceMap": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "baseUrl": "./",
+    "useUnknownInCatchVariables": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node", "jest"],
+    "paths": {
+      "@Classes/*": ["src/classes/*"],
+      "@Config/*": ["src/config/*"],
+      "@Controllers/*": ["src/controllers/*"],
+      "@Core/*": ["src/core/*"],
+      "@Enums/*": ["src/enums/*"],
+      "@Errors/*": ["src/errors/*"],
+      "@Database/*": ["src/database/*"],
+      "@Interfaces/*": ["src/interfaces/*"],
+      "@Middlewares/*": ["src/middlewares/*"],
+      "@Scripts/*": ["src/scripts/*"],
+      "@Services/*": ["src/services/*"],
+      "@Types/*": ["src/types/*"],
+      "@Utils/*": ["src/utils/*"]
+    }
+  },
+  "files": ["src/types/process.d.ts"],
+  "include": ["src/**/*.ts", "**/*.test.ts"],
+  "exclude": ["node_modules"]
+}
