@@ -24,7 +24,7 @@ This is a simple example of a Node server using [Restify](http://restify.com/) a
 
 1. Clone the repo (Certifies that you have the [GH CLI](https://cli.github.com/) installed)
 ```sh
- gh repo create <your-new-repo-name> --template lukearch/node-backend-template
+gh repo create <your-new-repo-name> --template lukearch/node-backend-template
 ```
 2. Update the [package.json](package.json) file with your project details
 3. Update the `.env` files in the [env](env) folder at the root of the project with your environment variables values
@@ -36,4 +36,3 @@ npm install # or yarn install
 ```sh
 npm run dev # or yarn dev
 ```
-
