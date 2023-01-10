@@ -2,7 +2,7 @@ const { pathsToModuleNameMapper } = require('ts-jest');
 const { compilerOptions } = require('./tsconfig');
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  displayName: 'dockhub-server-tests',
+  displayName: 'node-backend-template',
   preset: 'ts-jest',
   testEnvironment: 'node',
   clearMocks: false,

@@ -1,7 +1,7 @@
 {
   "name": "node-backend-template",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is a simple example of a Node server using Restify and TypeScript.",
   "engines": {
     "node": "16.17.1"
   },
@@ -19,9 +19,15 @@
     "typeorm:migration:run": "SET NODE_ENV=development&& npm run typeorm migration:run -- -d src/database/data-source.ts",
     "test": "SET NODE_ENV=testing&&jest tests/index.test.ts"
   },
-  "keywords": [],
-  "author": "Blitz IT Solutions <development@beblitz.com.br>",
-  "license": "ISC",
+  "keywords": [
+    "node",
+    "typescript",
+    "restify",
+    "template",
+    "typeorm"
+  ],
+  "author": "Lucas Larangeira <lukearch@beblitz.com.br>",
+  "license": "MIT",
   "nodemonConfig": {
     "watch": [
       "src"
