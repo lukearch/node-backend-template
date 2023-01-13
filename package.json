@@ -7,17 +7,13 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "dev": "SET NODE_ENV=development&& nodemon",
+    "dev": "nodemon",
     "build": "npx ts-node-dev build.ts && tree -L 3 dist -a -I './*.js.map'",
     "start": "SET NODE_ENV=staging&& node -r module-alias/register ./dist --env=production",
     "prepare": "husky install",
     "lint": "npx eslint src/**/*.ts --fix",
     "format": "npx prettier src/**/*.ts --write",
-    "typeorm": "SET NODE_ENV=development&& ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "typeorm:migration:show": "SET NODE_ENV=development&& npm run typeorm migration:show -- -d src/database/data-source.ts",
-    "typeorm:migration:create": "SET NODE_ENV=development&& npm run typeorm migration:create src/database/migrations/%npm_config_migration%",
-    "typeorm:migration:run": "SET NODE_ENV=development&& npm run typeorm migration:run -- -d src/database/data-source.ts",
-    "test": "SET NODE_ENV=testing&&jest tests/index.test.ts"
+    "tree": "tree -L 3 dist -a -I './*.js.map'"
   },
   "keywords": [
     "node",
@@ -33,7 +29,7 @@
       "src"
     ],
     "ext": "ts",
-    "exec": "ts-node-dev --files -r tsconfig-paths/register ./src"
+    "exec": "SET NODE_ENV=development&& ts-node-dev --files -r tsconfig-paths/register ./src"
   },
   "_moduleAliases": {
     "@Classes": "dist/classes",

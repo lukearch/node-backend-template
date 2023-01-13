@@ -34,10 +34,18 @@ class UserService extends Service<User> {
 
     const toSave = this.repository.create(user);
 
-    return this.repository.save(toSave).catch(e => {
-      logger.err(e.toString());
-      throw new InternalServerError('An error occurred while saving the user.');
-    });
+    return this.repository
+      .save(toSave)
+      .catch(e => {
+        logger.err(e.toString());
+        throw new InternalServerError(
+          'An error occurred while saving the user.'
+        );
+      })
+      .then(user => {
+        delete user.password;
+        return user;
+      });
   }
 
   public async list(queryOptions?: {
@@ -153,6 +161,77 @@ class UserService extends Service<User> {
       logger.err(e.toString());
       throw new InternalServerError('An error ocurred while updating user.');
     });
+  }
+
+  public async delete(id: string): Promise<void> {
+    if (!id) {
+      throw new BadRequestError('You should provide an id.');
+    }
+
+    const user = await this.repository
+      .findOne({
+        where: {
+          id,
+        },
+      })
+      .catch(e => {
+        logger.err(e.toString());
+        throw new InternalServerError('An error occurred while finding user.');
+      });
+
+    if (!user) {
+      throw new NotFoundError('User not found.');
+    }
+
+    return this.repository
+      .remove(user)
+      .catch(e => {
+        logger.err(e.toString());
+        throw new InternalServerError('An error occurred while deleting user.');
+      })
+      .then(() => {
+        return;
+      });
+  }
+
+  public async login({ email, password }: User): Promise<User> {
+    if (!email) {
+      throw new BadRequestError('You should provide an email.');
+    }
+
+    if (!password) {
+      throw new BadRequestError('You should provide a password.');
+    }
+
+    const user = await this.repository
+      .findOne({
+        where: {
+          email,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          password: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      })
+      .catch(e => {
+        logger.err(e.toString());
+        throw new InternalServerError('An error occurred while finding user.');
+      });
+
+    if (!user) {
+      throw new NotFoundError('User not found.');
+    }
+
+    if (user.password !== password) {
+      throw new BadRequestError('Invalid password.');
+    }
+
+    delete user.password;
+    return user;
   }
 }
 

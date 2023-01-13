@@ -7,7 +7,9 @@ import {
 } from 'typeorm';
 import * as crypto from 'crypto';
 
-@Entity()
+@Entity({
+  name: 'users',
+})
 export default class User {
   @PrimaryColumn()
   public id: string;
@@ -18,7 +20,9 @@ export default class User {
   @Column()
   public email: string;
 
-  @Column()
+  @Column({
+    select: false,
+  })
   public password: string;
 
   @Column()

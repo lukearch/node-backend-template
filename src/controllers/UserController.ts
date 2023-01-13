@@ -41,6 +41,18 @@ class UserController implements Controller {
         handler: this.update.bind(this),
         middlewares: [],
       },
+      {
+        path: '/users/:id',
+        method: 'del',
+        handler: this.delete.bind(this),
+        middlewares: [],
+      },
+      {
+        path: '/users/login',
+        method: 'post',
+        handler: this.login.bind(this),
+        middlewares: [],
+      },
     ];
   }
 
@@ -100,6 +112,23 @@ class UserController implements Controller {
     res.send(
       HttpStatusCode.Ok,
       new AppResponse(await this.service.edit(req.body))
+    );
+  }
+
+  public async delete(
+    req: IRequest<void, { id: string }>,
+    res: Response
+  ): Promise<void> {
+    res.send(
+      HttpStatusCode.Ok,
+      new AppResponse(await this.service.delete(req.params.id))
+    );
+  }
+
+  public async login(req: IRequest<User>, res: Response): Promise<void> {
+    res.send(
+      HttpStatusCode.Ok,
+      new AppResponse(await this.service.login(req.body))
     );
   }
 }
