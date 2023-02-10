@@ -15,7 +15,7 @@
     "paths": {
       "@Classes/*": ["src/classes/*"],
       "@Config/*": ["src/config/*"],
-      "@Controllers/*": ["src/controllers/*"],
+      "@Routes/*": ["src/routes/*"],
       "@Core/*": ["src/core/*"],
       "@Enums/*": ["src/enums/*"],
       "@Errors/*": ["src/errors/*"],

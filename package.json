@@ -7,13 +7,27 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon",
+    "dev-win": "SET NODE_ENV=development&& nodemon",
+    "dev-linux": "export NODE_ENV=development&& nodemon",
     "build": "npx ts-node-dev build.ts && tree -L 3 dist -a -I './*.js.map'",
-    "start": "SET NODE_ENV=staging&& node -r module-alias/register ./dist --env=production",
+    "start-win": "SET NODE_ENV=production&& node -r module-alias/register ./dist --env=production",
+    "start-linux": "export NODE_ENV=production&& node -r module-alias/register ./dist --env=production",
+    "start-dev-linux": "export NODE_ENV=development&& node -r module-alias/register ./dist --env=development",
+    "staging-linux": "export NODE_ENV=staging&& node -r module-alias/register ./dist --env=staging",
     "prepare": "husky install",
     "lint": "npx eslint src/**/*.ts --fix",
     "format": "npx prettier src/**/*.ts --write",
-    "tree": "tree -L 3 dist -a -I './*.js.map'"
+    "typeorm-win": "SET NODE_ENV=development&& ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm-linux": "export NODE_ENV=development&& ts-node-dev -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm:migration:show-win": "npm run typeorm-win migration:show -- -d src/database/data-source.ts",
+    "typeorm:migration:run-win": "npm run typeorm-win migration:run -- -d src/database/data-source.ts",
+    "typeorm:migration:run-linux": "npm run typeorm-linux migration:run -- -d src/database/data-source.ts",
+    "typeorm:migration:create-win": "npm run typeorm-win migration:create src/database/migrations/%npm_config_migration%",
+    "typeorm:migration:create-linux": "npm run typeorm-linux migration:generate -- -d src/database/data-source.ts",
+    "docker-build-dev": "yarn build && docker build --no-cache --progress=plain -t node-backend-template:dev -f Dockerfile.dev .",
+    "docker-build-staging": "yarn build && docker build --no-cache --progress=plain -t node-backend-template:staging -f Dockerfile.staging .",
+    "docker-build-prod": "yarn build && docker build --no-cache --progress=plain -t node-backend-template:prod -f Dockerfile.prod .",
+    "print-tree": "tree -L 3 dist -a -I './*.js.map'"
   },
   "keywords": [
     "node",
@@ -29,12 +43,12 @@
       "src"
     ],
     "ext": "ts",
-    "exec": "SET NODE_ENV=development&& ts-node-dev --files -r tsconfig-paths/register ./src"
+    "exec": "ts-node-dev --files -r tsconfig-paths/register ./src"
   },
   "_moduleAliases": {
     "@Classes": "dist/classes",
     "@Config": "dist/config",
-    "@Controllers": "dist/controllers",
+    "@Routes": "dist/routes",
     "@Core": "dist/core",
     "@Enums": "dist/enums",
     "@Errors": "dist/errors",
@@ -48,12 +62,15 @@
     "@Utils": "dist/utils"
   },
   "dependencies": {
+    "axios": "^1.3.1",
+    "bcryptjs": "^2.4.3",
     "command-line-args": "^5.2.1",
     "crypto": "^1.0.1",
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.0",
     "helmet": "^6.0.0",
     "jet-logger": "^1.2.6",
+    "jsonwebtoken": "^9.0.0",
     "module-alias": "^2.2.2",
     "morgan": "^1.10.0",
     "pg": "^8.4.0",
@@ -68,10 +85,12 @@
   },
   "devDependencies": {
     "@types/assert": "^1.5.6",
+    "@types/bcryptjs": "^2.4.2",
     "@types/command-line-args": "^5.2.0",
     "@types/dotenv": "^8.2.0",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^29.2.5",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/morgan": "^1.9.3",
     "@types/node": "^16.11.10",
     "@types/restify": "^8.5.5",
@@ -91,7 +110,7 @@
     "lint-staged": "^13.1.0",
     "nodemon": "^2.0.20",
     "prettier": "^2.7.1",
-    "rimraf": "^3.0.2",
+    "rimraf": "^4.1.2",
     "supertest": "^6.3.3",
     "tree-node-cli": "^1.6.0",
     "ts-jest": "^29.0.3",

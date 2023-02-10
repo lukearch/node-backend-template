@@ -1,0 +1,17 @@
+FROM node:16.17.1-alpine
+
+ENV HOME /usr/src/
+WORKDIR $HOME
+
+COPY package.json .
+COPY yarn.lock .
+COPY env ./env
+COPY certs ./certs
+COPY dist ./dist
+
+RUN apk add --no-cache git
+RUN yarn install
+
+EXPOSE 3000
+
+CMD yarn print-tree && yarn start-dev-linux

@@ -1,6 +1,6 @@
 import '@Scripts/pre-start';
 import Server from '@Core/Server';
-import logger from 'jet-logger';
+import logger from '@Utils/logger';
 
 const server = new Server();
 
@@ -11,7 +11,7 @@ server.start().then(async () => {
       await server.databaseClient
         .synchronize()
         .then(() => {
-          server.startControllers();
+          server.configure();
         })
         .catch(e => {
           logger.err(e.toString());

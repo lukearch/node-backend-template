@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
 import { AppDataSource } from '@Database/data-source';
-import logger from 'jet-logger';
+import logger from '@Utils/logger';
 
 class DatabaseClient {
   private static dataSource: DataSource;

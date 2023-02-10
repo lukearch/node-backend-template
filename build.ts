@@ -4,7 +4,7 @@ import childProcess from 'child_process';
 
 (async () => {
   try {
-    await remove('./dist/');
+    await remove('./dist');
     await exec('tsc --build tsconfig.prod.json', './');
   } catch (err) {
     logger.err(err);

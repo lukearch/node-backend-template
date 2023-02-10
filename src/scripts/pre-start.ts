@@ -13,5 +13,5 @@ if (result2.error) {
 }
 
 if (!process.env.SERVER_NAME) {
-  throw new Error('Did you forget to configure the environment variables?');
+  throw new Error('Did you forget to set update environment variables?');
 }

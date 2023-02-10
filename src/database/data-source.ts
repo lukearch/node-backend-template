@@ -1,7 +1,9 @@
 /* eslint-disable node/no-process-env */
 import '@Scripts/pre-start';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import path from 'path';
+import * as fs from 'fs-extra';
+import * as process from 'process';
 
 export const AppDataSource = new DataSource({
   type: process.env.DB_TYPE === 'postgres' ? 'postgres' : 'mongodb',
@@ -15,6 +17,12 @@ export const AppDataSource = new DataSource({
   entities: [path.resolve(__dirname, 'entities', '*.{ts,js}')],
   migrations: [path.resolve(__dirname, 'migrations', '*.{ts,js}')],
   migrationsRun: process.env.DB_MIGRATIONS_RUN === 'true',
-  migrationsTableName: process.env.DB_MIGRATIONS_TABLE_NAME,
-  ssl: process.env.DB_SSL === 'true',
-});
+  migrationsTableName: 'migrations',
+  ssl:
+    (process.env.DB_SSL === 'true' && {
+      ca: fs
+        .readFileSync(path.resolve(__dirname, '../../certs', 'ca.crt'))
+        .toString(),
+    }) ||
+    false,
+} as unknown as DataSourceOptions);

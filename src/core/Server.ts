@@ -1,21 +1,25 @@
-import * as restify from 'restify';
-import { Request, Response } from 'restify';
-import * as cors from 'restify-cors-middleware';
+import AppResponse from '@Classes/AppResponse';
+import appSettings from '@Config/settings';
+import DatabaseClient from '@Core/DbClient';
+import { HttpStatusCode } from '@Enums/HttpStatusCode';
+import NodeEnv from '@Enums/NodeEnv';
+import { IRequest } from '@Interfaces/IRequest';
+import Route from '@Interfaces/Route';
+import guardian from '@Middlewares/guardian';
+import { routes } from '@Routes/routes';
+import logger from '@Utils/logger';
+import { getNextAvailablePort } from '@Utils/portResolver';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import logger from 'jet-logger';
-import { DefinedHttpError } from 'restify-errors';
-import appSettings from '@Config/settings';
-import NodeEnv from '@Enums/NodeEnv';
-import guardian from '@Middlewares/guardian';
-import DatabaseClient from '@Core/DbClient';
+import * as restify from 'restify';
+import * as cors from 'restify-cors-middleware';
+import { DefinedHttpError, NotFoundError } from 'restify-errors';
 import { injectable } from 'tsyringe';
-import controllers from '@Controllers/index';
-import Route from '@Interfaces/Route';
 
 @injectable()
 export default class Server {
   private readonly app: restify.Server;
+  private routes: Route[] = [];
 
   constructor() {
     this.app = restify.createServer({
@@ -32,7 +36,7 @@ export default class Server {
     return new DatabaseClient();
   }
 
-  public async start(callback?: () => void): Promise<void> {
+  public async start(port?: number, callback?: () => void): Promise<void> {
     const _options: cors.Options = {
       preflightMaxAge: appSettings.security.cors.preflightMaxAge,
       origins: [...appSettings.security.cors.origins],
@@ -53,50 +57,53 @@ export default class Server {
       appSettings.node.env === NodeEnv.Production ||
       appSettings.node.env === NodeEnv.Staging
     ) {
-      this.app.use(restify.plugins.conditionalRequest());
       this.app.use(helmet());
     }
 
     if (appSettings.node.env === NodeEnv.Development) {
-      this.app.use(restify.plugins.conditionalRequest());
-      this.app.use(restify.plugins.gzipResponse());
-      this.app.use(restify.plugins.requestLogger());
       this.app.use(morgan('dev'));
     }
 
     this.app.on(
       'restifyError',
-      (req: Request, res: Response, err: DefinedHttpError) => {
-        err.toJSON = function customToJSON() {
+      (
+        req: restify.Request,
+        res: restify.Response,
+        err: DefinedHttpError,
+        next: restify.Next
+      ) => {
+        err.toJSON = () => {
           return {
-            code: this.statusCode,
-            message: this.body.message,
+            code: err.statusCode,
+            message: err.body.message,
           };
         };
 
-        err.toString = function customToString() {
-          return JSON.stringify(this.toJSON());
+        err.toString = () => {
+          return `${err.statusCode} - ${err.message}`;
         };
 
-        logger.err(err.toString());
+        if (appSettings.node.env === NodeEnv.Development) {
+          logger.err(err.toString());
+        }
 
-        return guardian(err, req, res);
+        return guardian(err, req, res, next);
       }
     );
 
-    return new Promise((resolve, reject) => {
-      try {
-        this.app.listen(appSettings.server.port, () => {
-          logger.info(
-            `Server ${appSettings.server.name}:v${appSettings.server.version} is listening on port ${appSettings.server.port}`
-          );
-          if (callback) {
-            callback();
-          }
-          resolve();
-        });
-      } catch (e) {
-        reject(e);
+    const _port = await getNextAvailablePort(
+      port ? port : appSettings.server.port
+    );
+
+    this.app.listen(_port, () => {
+      logger.imp(
+        `started server on port ${_port} in ${
+          appSettings.node.env
+        } mode, url: ${this.app.url.replace('[::]', 'localhost')}`
+      );
+
+      if (callback) {
+        callback();
       }
     });
   }
@@ -117,24 +124,66 @@ export default class Server {
     });
   }
 
-  public startControllers(): void {
-    controllers().forEach(controller => {
-      controller.register(this);
+  public configure(): void {
+    this.app.get('/api/routes', (_: IRequest, res: restify.Response) => {
+      res.send(
+        HttpStatusCode.Ok,
+        new AppResponse({
+          name: appSettings.server.name,
+          version: appSettings.server.version,
+          routes: this.routes.map(route => {
+            return {
+              method: route.method,
+              path: route.path,
+              availableVersions: route.versions.map(version => {
+                return version.version;
+              }),
+            };
+          }),
+        })
+      );
     });
+
+    this.app.router.defaultRoute = (
+      _: IRequest,
+      __: restify.Response,
+      next: restify.Next
+    ) => {
+      return next(
+        new NotFoundError(
+          `A rota ${_.path()} não existe no servidor, por favor acesse /api/routes para ver as rotas disponíveis.`
+        )
+      );
+    };
+
+    routes.map(route => {
+      this.registerRoute(route);
+    });
+
+    logger.imp(
+      `server ${appSettings.server.name} is configured and ready to go`
+    );
   }
 
   public registerRoute(route: Route): void {
-    const { method, path, middlewares, handler } = route;
-    const parsedPath = `/api/v${appSettings.server.version}${path}`;
+    const { method, path, versions } = route;
+    const parsedPath = `/api/${path.startsWith('/') ? path.slice(1) : path}`;
 
-    this.instance[method](parsedPath, middlewares, async (req, res, next) => {
-      try {
-        await handler(req, res, next);
-      } catch (err) {
-        return next(err);
-      }
+    this.app[method](
+      parsedPath,
+      restify.plugins.conditionalHandler(
+        versions.map(version => {
+          return {
+            version: version.version,
+            handler: [...version.middlewares, version.handler],
+          };
+        })
+      )
+    );
+
+    this.routes.push({
+      ...route,
+      path: parsedPath,
     });
-
-    logger.info(`Route ${method.toUpperCase()} ${parsedPath} registered`);
   }
 }
